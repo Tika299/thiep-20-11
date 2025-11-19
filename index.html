@@ -8,33 +8,56 @@
     <style>
         :root {
             --paper-color: #fdfbf0;
-            --book-width: 850px;
-            --book-height: 550px;
+            --book-width: 800px;  /* Kích thước chuẩn PC */
+            --book-height: 500px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            -webkit-tap-highlight-color: transparent; /* Bỏ highlight khi chạm trên mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: #1a1a1a;
             background-image: radial-gradient(circle, #2c3e50 0%, #000000 100%);
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Dynamic Viewport Height cho mobile (fix lỗi thanh địa chỉ) */
+            height: 100vh;
             width: 100vw;
+            overflow: hidden; /* Cấm cuộn */
+            font-family: 'Patrick Hand', cursive;
+            /* Căn giữa mọi thứ */
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
-            font-family: 'Patrick Hand', cursive;
         }
 
-        /* --- CANVAS & FALLING --- */
+        /* --- THỦ THUẬT XOAY MÀN HÌNH (AUTO LANDSCAPE) --- */
+        #main-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Nếu màn hình đang dọc (Portrait) -> Xoay ngang cưỡng bức */
+        @media screen and (orientation: portrait) {
+            #main-wrapper {
+                width: 100vh; /* Đảo chiều rộng/cao */
+                height: 100vw;
+                transform: rotate(90deg);
+                transform-origin: top left;
+                position: absolute;
+                top: 0;
+                left: 100%; /* Đẩy sang phải để sau khi xoay nó lọt vào màn hình */
+            }
+        }
+
+        /* --- CANVAS & HIỆU ỨNG --- */
         #fireworks-canvas {
-            position: fixed;
+            position: absolute; /* Đổi thành absolute theo wrapper */
             top: 0;
             left: 0;
             width: 100%;
@@ -63,10 +86,10 @@
         }
 
         @keyframes fall {
-            to { transform: translateY(110vh) rotate(720deg); }
+            to { transform: translateY(120vh) rotate(720deg); }
         }
 
-        /* --- SÁCH ĐÓNG (Mobile Optimized) --- */
+        /* --- SÁCH ĐÓNG --- */
         .closed-book-wrapper {
             position: absolute;
             z-index: 50;
@@ -75,33 +98,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        /* Hiệu ứng nhịp đập nhẹ để mời gọi */
-        .closed-book-wrapper {
-            animation: pulseBook 2s infinite ease-in-out;
-        }
-        
-        @keyframes pulseBook {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            /* Scale nhỏ lại nếu màn hình bé (điện thoại) */
+            transform-origin: center center;
         }
 
         .closed-book {
-            width: 240px; /* Nhỏ hơn cho mobile */
-            height: 360px;
+            width: 220px;
+            height: 330px;
             background: #F33139;
             border-radius: 15px 10px 8px 20px;
             background-image: linear-gradient(to right, #D11F2F 30px, #ba0716 32px, transparent 32px);
-            box-shadow: 8px 15px 25px rgba(0,0,0,0.6);
+            box-shadow: 10px 20px 30px rgba(0,0,0,0.6);
             position: relative;
         }
 
-        .closed-book::after { /* Giấy trắng bên dưới */
+        .closed-book::after {
             content: "";
             position: absolute;
             height: 40px;
-            width: 235px; 
+            width: 215px; 
             bottom: 4px;
             right: 0px;
             background: white;
@@ -119,7 +134,7 @@
             text-align: center;
             color: #fdfbf0;
             font-family: 'Dancing Script', cursive;
-            font-size: 3em;
+            font-size: 2.8em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
@@ -129,7 +144,6 @@
             font-size: 1.2em;
             opacity: 0.8;
             animation: fadeHint 1.5s infinite;
-            text-align: center;
         }
 
         @keyframes fadeHint {
@@ -137,25 +151,22 @@
             50% { opacity: 1; }
         }
 
-        /* --- SÁCH MỞ (Responsive Logic) --- */
+        /* --- SÁCH MỞ (GIAO DIỆN PC CHUẨN) --- */
         .opened-book-wrapper {
             display: none;
             opacity: 0;
             transition: opacity 0.8s ease-in;
             z-index: 10;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* QUAN TRỌNG: Dùng scale để co sách lại vừa màn hình điện thoại */
+            transform-origin: center center;
         }
 
         .book {
             width: var(--book-width);
             height: var(--book-height);
             display: flex;
+            perspective: 1500px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            transition: all 0.5s;
         }
 
         .page {
@@ -164,37 +175,46 @@
             background-color: var(--paper-color);
             position: relative;
             padding: 30px;
-            /* Texture giấy */
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
         }
 
-        /* PC View */
         .page.left {
             border-radius: 10px 0 0 10px;
-            background: linear-gradient(to right, #e6d8be, #fdfbf0 10%);
+            background: linear-gradient(to right, #e6d8be, #fdfbf0 15%);
             display: flex;
             justify-content: center;
             align-items: center;
+            border-right: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        /* Gáy sách */
+        .page.left::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.1));
         }
 
         .page.right {
             border-radius: 0 10px 10px 0;
-            background: linear-gradient(to left, #e6d8be, #fdfbf0 10%);
+            background: linear-gradient(to left, #e6d8be, #fdfbf0 15%);
             color: #5d4037;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: center; /* Căn giữa dọc */
             align-items: center;
             text-align: center;
-            overflow: hidden; /* Chặn cuộn */
+            overflow: hidden;
         }
 
-        /* Nội dung bên trong */
         .flower-img {
             width: 85%;
-            height: 70%;
+            height: 75%;
             object-fit: cover;
-            border: 4px solid white;
+            border: 5px solid white;
             box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
             transform: rotate(-3deg);
             background-image: url('https://banner2.cleanpng.com/20240104/pvp/transparent-cartoon-flowers-bouquet-colorful-roses-colorful-bouquet-of-roses-sunflowers-and-1710939838857.webp'); 
@@ -208,147 +228,86 @@
             top: 15px;
             left: 50%;
             transform: translateX(-50%) rotate(2deg);
-            width: 80px;
-            height: 25px;
+            width: 100px;
+            height: 30px;
             background-color: rgba(255, 255, 255, 0.5);
             z-index: 2;
         }
 
         .content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around; /* Phân bố đều theo chiều dọc */
-            padding: 10px 0;
+            padding: 0 10px;
         }
 
         .content h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: clamp(1.5rem, 4vw, 3rem); /* Tự động scale chữ */
+            font-size: 3em;
             color: #c0392b;
-            line-height: 1.2;
-            margin-bottom: 5px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
         }
 
         .content p {
-            font-size: clamp(0.9rem, 2.5vw, 1.3rem); /* Chữ tự nhỏ lại nếu màn hình bé */
-            line-height: 1.4;
-            text-align: justify;
-            margin: 5px 0;
+            font-size: 1.3em;
+            line-height: 1.5;
+            margin-bottom: 15px;
         }
 
         .signature {
             text-align: right;
             font-family: 'Dancing Script', cursive;
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-size: 1.8em;
             color: #2c3e50;
-            margin-top: 5px;
+            margin-top: 20px;
+            width: 100%;
         }
 
-        /* --- MOBILE OPTIMIZATION (Cực kỳ quan trọng) --- */
-        @media (max-width: 850px) {
-            .opened-book-wrapper {
-                display: none; /* Giữ logic ẩn hiện */
-            }
-
-            .book {
-                width: 92vw;
-                height: 85vh; /* Chiếm 85% chiều cao màn hình */
-                flex-direction: column; /* Xếp dọc: Ảnh trên, Lời chúc dưới */
-                box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            }
-
-            .page {
-                width: 100%;
-                height: 50%; /* Chia đôi màn hình */
-                padding: 20px;
-            }
-
-            /* Trang trên (Ảnh) */
-            .page.left {
-                border-radius: 10px 10px 0 0;
-                background: linear-gradient(to bottom, #e6d8be, #fdfbf0 15%);
-                border-right: none;
-                border-bottom: 1px solid rgba(139, 69, 19, 0.1);
-            }
-
-            /* Trang dưới (Chữ) */
-            .page.right {
-                border-radius: 0 0 10px 10px;
-                background: linear-gradient(to top, #e6d8be, #fdfbf0 15%);
-                border-left: none;
-            }
-
-            .flower-img {
-                width: auto;
-                height: 85%; /* Ảnh cao hơn chút trên mobile */
-                max-width: 90%;
-            }
-
-            .content {
-                justify-content: center;
-                gap: 10px;
-            }
-
-            /* Tinh chỉnh chữ trên mobile */
-            .content h1 {
-                font-size: 6.5vmin; /* Dựa trên cạnh nhỏ nhất của màn hình */
-            }
-            
-            .content p {
-                font-size: 4vmin;
-                line-height: 1.5;
-            }
-
-            .signature {
-                font-size: 5vmin;
-                margin-top: 10px;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <canvas id="fireworks-canvas"></canvas>
-    <div id="falling-container"></div>
+    <!-- Wrapper chính để thực hiện xoay -->
+    <div id="main-wrapper">
+        
+        <canvas id="fireworks-canvas"></canvas>
+        <div id="falling-container"></div>
 
-    <audio id="bg-music" loop>
-        <!-- Dùng link nhạc ổn định hơn -->
-        <source src="https://cdn.pixabay.com/audio/2024/06/05/audio_116f29598b.mp3" type="audio/mpeg">
-    </audio>
+        <audio id="bg-music" loop>
+            <source src="https://cdn.pixabay.com/audio/2024/06/05/audio_116f29598b.mp3" type="audio/mpeg">
+        </audio>
 
-    <!-- Sách Đóng -->
-    <div class="closed-book-wrapper" id="closed-book-trigger">
-        <div class="closed-book">
-            <div class="book-title">Tri Ân<br>20-11</div>
-        </div>
-        <div class="click-hint">Cham nhẹ để mở 👆</div>
-    </div>
-
-    <!-- Sách Mở -->
-    <div class="opened-book-wrapper" id="opened-book-view">
-        <div class="book">
-            <div class="page left">
-                <div class="tape"></div>
-                <div class="flower-img"></div>
+        <!-- Sách Đóng -->
+        <div class="closed-book-wrapper" id="closed-book-trigger">
+            <div class="closed-book">
+                <div class="book-title">Tri Ân<br>20-11</div>
             </div>
-            <div class="page right">
-                <div class="content">
-                    <h1>Kính Gửi Thầy Cô</h1>
-                    <p>
-                        Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi đến Thầy,Cô lời tri ân sâu sắc nhất. Cảm ơn Thầy,Cô vì đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người.
-                    </p>
-                    <p>
-                        Kính chúc Thầy,Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý. Những bài học ngày ấy mãi là hành trang quý giá theo em suốt cuộc đời.
-                    </p>
-                    <div class="signature">
-                        Học trò,<br>
-                        K23418
+            <div class="click-hint">Chạm nhẹ để mở 👆</div>
+        </div>
+
+        <!-- Sách Mở -->
+        <div class="opened-book-wrapper" id="opened-book-view">
+            <div class="book">
+                <div class="page left">
+                    <div class="tape"></div>
+                    <div class="flower-img"></div>
+                </div>
+                <div class="page right">
+                    <div class="content">
+                        <h1>Kính Tặng Thầy Cô</h1>
+                        <p>
+                            Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi đến Thầy,Cô lời tri ân sâu sắc nhất. Cảm ơn Thầy,Cô vì đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người.
+                        </p>
+                        <p>
+                            Kính chúc Thầy,Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý. Những bài học ngày ấy mãi là hành trang quý giá theo em suốt cuộc đời.
+                        </p>
+                        <div class="signature">
+                            Học trò,<br>
+                            K23418
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -358,43 +317,56 @@
         const fallingContainer = document.getElementById('falling-container');
         const canvas = document.getElementById('fireworks-canvas');
         const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('main-wrapper');
 
-        // Detect Mobile
-        const isMobile = window.innerWidth < 850;
+        // Hàm điều chỉnh Scale (Phóng to/Thu nhỏ) để vừa màn hình
+        function resizeContent() {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            const width = isPortrait ? window.innerHeight : window.innerWidth; // Lấy cạnh dài làm chiều ngang
+            const height = isPortrait ? window.innerWidth : window.innerHeight; // Lấy cạnh ngắn làm chiều dọc
+            
+            // Tính toán tỷ lệ scale sao cho cuốn sách (800x500) vừa vào khung hình
+            // Trừ hao một chút margin (0.9)
+            const scaleX = (width * 0.9) / 800; 
+            const scaleY = (height * 0.9) / 500;
+            const scale = Math.min(scaleX, scaleY); // Lấy tỷ lệ nhỏ hơn để không bị cắt
 
-        // --- PHẦN 1: CANVAS PHÁO HOA (Tối ưu hiệu năng) ---
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+            // Áp dụng scale
+            openedBook.style.transform = `scale(${scale})`;
+            closedBook.style.transform = `scale(${scale})`;
+            
+            // Cập nhật kích thước Canvas pháo hoa theo wrapper (để nó xoay theo)
+            if (isPortrait) {
+                canvas.width = window.innerHeight;
+                canvas.height = window.innerWidth;
+            } else {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        }
 
+        // Gọi resize khi tải trang và khi xoay màn hình
+        window.addEventListener('resize', resizeContent);
+        resizeContent();
+
+        // --- PHÁO HOA ---
         class Particle {
             constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
+                this.x = x; this.y = y; this.color = color;
                 const angle = Math.random() * Math.PI * 2;
-                // Giảm tốc độ nổ trên mobile cho gọn
-                const velocity = isMobile ? Math.random() * 3 + 1 : Math.random() * 4 + 1;
+                const velocity = Math.random() * 4 + 1;
                 this.vx = Math.cos(angle) * velocity;
                 this.vy = Math.sin(angle) * velocity;
-                this.alpha = 1;
-                this.decay = isMobile ? 0.02 : 0.015; // Mờ nhanh hơn trên mobile
+                this.alpha = 1; this.decay = 0.015;
             }
-
             update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vy += 0.05;
-                this.alpha -= this.decay;
+                this.x += this.vx; this.y += this.vy;
+                this.vy += 0.05; this.alpha -= this.decay;
             }
-
             draw(ctx) {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, isMobile ? 1.5 : 2, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.restore();
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color; ctx.fill(); ctx.restore();
             }
         }
 
@@ -402,34 +374,29 @@
         const colors = ['#FF5733', '#FFC300', '#DAF7A6', '#FF33F6', '#33FFF6'];
 
         function createFirework(x, y) {
-            // Giảm số lượng hạt trên mobile để đỡ lag
-            const count = isMobile ? 30 : 80; 
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(x, y, color));
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
             }
         }
 
         function animateFireworks() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Xóa vết mờ nhanh hơn
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
             for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                p.draw(ctx);
-                if (p.alpha <= 0) particles.splice(i, 1);
+                particles[i].update(); particles[i].draw(ctx);
+                if (particles[i].alpha <= 0) particles.splice(i, 1);
             }
             requestAnimationFrame(animateFireworks);
         }
 
-        // --- PHẦN 2: HOA RƠI ---
-        const fallingItems = ['', '', '', '', '']; 
+        // --- HOA RƠI ---
+        const fallingItems = ['', '', '', '', '', '', '', ''];
         function createFallingItem() {
             const item = document.createElement('div');
             item.classList.add('falling-item');
             item.innerText = fallingItems[Math.floor(Math.random() * fallingItems.length)];
-            item.style.left = Math.random() * 100 + 'vw';
+            // Random vị trí theo chiều ngang "giả"
+            item.style.left = Math.random() * 100 + '%'; 
             const size = Math.random() * 15 + 10;
             item.style.fontSize = size + 'px';
             const duration = Math.random() * 3 + 4;
@@ -438,48 +405,32 @@
             setTimeout(() => { item.remove(); }, duration * 1000);
         }
 
-        // --- LOGIC CHÍNH ---
+        // --- XỬ LÝ CLICK ---
         closedBook.addEventListener('click', () => {
             music.volume = 0.6;
             music.play().catch(() => {});
 
-            // Hiệu ứng biến mất
-            closedBook.style.transform = isMobile ? "scale(1.2)" : "scale(1.5)";
             closedBook.style.opacity = "0";
-
             setTimeout(() => {
                 closedBook.style.display = 'none';
+                openedBook.style.display = 'block';
                 
-                // Hiện sách mở
-                openedBook.style.display = 'flex'; // Dùng flex để căn giữa
-                
-                // Animation mở sách
+                // Cần gọi lại scale để đảm bảo sách mở có kích thước đúng
+                resizeContent();
+
                 requestAnimationFrame(() => {
                     openedBook.style.opacity = '1';
                 });
 
-                // Bắt đầu hiệu ứng
-                setInterval(createFallingItem, isMobile ? 600 : 400); // Mobile rơi ít hơn
+                setInterval(createFallingItem, 400);
                 animateFireworks();
-                
-                // Pháo hoa tự động
                 setInterval(() => {
-                    if (openedBook.style.opacity === '1') {
-                        const x = Math.random() * canvas.width;
-                        const y = Math.random() * (canvas.height / 2);
-                        createFirework(x, y);
+                    if (openedBook.style.display === 'block') {
+                        createFirework(Math.random() * canvas.width, Math.random() * canvas.height / 2);
                     }
-                }, isMobile ? 1200 : 800); // Mobile bắn chậm hơn
-
+                }, 1000);
             }, 600);
         });
-
-        // Fix resize trên mobile
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
     </script>
 </body>
 </html>
