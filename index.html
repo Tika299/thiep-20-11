@@ -2,26 +2,28 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tri Ân Thầy Cô 20/11</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
         :root {
             --paper-color: #fdfbf0;
-            --book-width: 800px;
-            --book-height: 500px;
+            --book-width: 850px;
+            --book-height: 550px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent; /* Bỏ highlight khi chạm trên mobile */
         }
 
         body {
-            background-color: #1a1a1a; /* Nền tối hơn để pháo hoa đẹp hơn */
+            background-color: #1a1a1a;
             background-image: radial-gradient(circle, #2c3e50 0%, #000000 100%);
-            height: 100vh;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic Viewport Height cho mobile (fix lỗi thanh địa chỉ) */
             width: 100vw;
             display: flex;
             justify-content: center;
@@ -30,18 +32,17 @@
             font-family: 'Patrick Hand', cursive;
         }
 
-        /* --- CANVAS PHÁO HOA --- */
+        /* --- CANVAS & FALLING --- */
         #fireworks-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Nằm dưới sách nhưng trên nền */
+            z-index: 1;
             pointer-events: none;
         }
 
-        /* --- HIỆU ỨNG RƠI (HOA/LÁ) --- */
         #falling-container {
             position: absolute;
             top: 0;
@@ -65,77 +66,70 @@
             to { transform: translateY(110vh) rotate(720deg); }
         }
 
-        /* --- SÁCH ĐÓNG --- */
+        /* --- SÁCH ĐÓNG (Mobile Optimized) --- */
         .closed-book-wrapper {
             position: absolute;
             z-index: 50;
             transition: transform 0.8s ease, opacity 0.8s ease;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .closed-book-wrapper:hover {
-            transform: scale(1.05) rotate(-2deg);
+        /* Hiệu ứng nhịp đập nhẹ để mời gọi */
+        .closed-book-wrapper {
+            animation: pulseBook 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulseBook {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
 
         .closed-book {
-            width: 280px;
-            height: 420px;
+            width: 240px; /* Nhỏ hơn cho mobile */
+            height: 360px;
             background: #F33139;
-            border-radius: 20px 16px 12px 32px;
-            background-image: linear-gradient(to right, #D11F2F 48px, #ba0716 50px, transparent 50px);
-            box-shadow: 10px 20px 30px rgba(0,0,0,0.5);
+            border-radius: 15px 10px 8px 20px;
+            background-image: linear-gradient(to right, #D11F2F 30px, #ba0716 32px, transparent 32px);
+            box-shadow: 8px 15px 25px rgba(0,0,0,0.6);
             position: relative;
         }
 
-        .closed-book::after {
+        .closed-book::after { /* Giấy trắng bên dưới */
             content: "";
             position: absolute;
-            height: 52px;
-            width: 274px; 
-            bottom: 6px;
+            height: 40px;
+            width: 235px; 
+            bottom: 4px;
             right: 0px;
             background: white;
-            border-radius: 32px 4px 4px 32px;
-            box-shadow: inset 4px 6px 0px 0px #E4E0CE;  
-            background-image: linear-gradient(to bottom, transparent 6px, #E4E0CE 8px, transparent 8px, transparent 12px, #E4E0CE 12px, transparent 14px, transparent 18px,#E4E0CE 18px, transparent 20px, transparent 24px, #E4E0CE 24px, transparent 26px, transparent 30px, #E4E0CE 30px, transparent 32px, transparent 36px, #E4E0CE 36px, transparent 38px, transparent 42px, #E4E0CE 42px, transparent 44px, transparent 48px, #E4E0CE 48px, transparent 50px);     
+            border-radius: 20px 4px 4px 20px;
             z-index: -1;
-        }
-
-        .closed-book::before {
-            content: "";
-            position: absolute;
-            height: 20px;
-            width: 160px; 
-            right: 40px;
-            top: 72px; 
-            background: #D11F2F;
-            border-radius: 20px;
-            box-shadow: 0px 36px #D11F2F;
+            background-image: repeating-linear-gradient(to right, #E4E0CE 0px, #E4E0CE 1px, transparent 1px, transparent 4px);
         }
 
         .book-title {
             position: absolute;
-            bottom: 100px;
-            right: 30px;
-            width: 180px;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            width: 100%;
             text-align: center;
             color: #fdfbf0;
             font-family: 'Dancing Script', cursive;
-            font-size: 2.5em;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            transform: rotate(-5deg);
-            line-height: 1.2;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .click-hint {
-            position: absolute;
-            bottom: -40px;
-            width: 100%;
-            text-align: center;
+            margin-top: 20px;
             color: white;
             font-size: 1.2em;
             opacity: 0.8;
             animation: fadeHint 1.5s infinite;
+            text-align: center;
         }
 
         @keyframes fadeHint {
@@ -143,21 +137,25 @@
             50% { opacity: 1; }
         }
 
-        /* --- SÁCH MỞ --- */
+        /* --- SÁCH MỞ (Responsive Logic) --- */
         .opened-book-wrapper {
             display: none;
             opacity: 0;
-            transition: opacity 1s ease-in;
+            transition: opacity 0.8s ease-in;
             z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .book {
             width: var(--book-width);
             height: var(--book-height);
             display: flex;
-            perspective: 1500px;
-            position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: all 0.5s;
         }
 
         .page {
@@ -165,82 +163,54 @@
             height: 100%;
             background-color: var(--paper-color);
             position: relative;
-            background-image: 
-                linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0) 100%),
-                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-            padding: 30px; /* Giảm padding một chút */
-            box-shadow: inset 0 0 30px rgba(139, 69, 19, 0.1);
+            padding: 30px;
+            /* Texture giấy */
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
         }
 
+        /* PC View */
         .page.left {
             border-radius: 10px 0 0 10px;
-            background: linear-gradient(to right, #e6d8be, #fdfbf0 15%, #fdfbf0 100%);
+            background: linear-gradient(to right, #e6d8be, #fdfbf0 10%);
             display: flex;
             justify-content: center;
             align-items: center;
-            border-right: 1px solid rgba(0,0,0,0.1);
         }
 
-        .page.left::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 30px;
-            height: 100%;
-            background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.15));
-        }
-
-        /* Căn chỉnh trang phải: Không cuộn */
         .page.right {
             border-radius: 0 10px 10px 0;
-            background: linear-gradient(to left, #e6d8be, #fdfbf0 15%, #fdfbf0 100%);
+            background: linear-gradient(to left, #e6d8be, #fdfbf0 10%);
             color: #5d4037;
-            border-left: 1px solid rgba(0,0,0,0.05);
-            
-            /* Flexbox để căn giữa và không cuộn */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow: hidden; 
             text-align: center;
-        }
-        
-        .page.right::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 30px;
-            height: 100%;
-            background: linear-gradient(to left, rgba(0,0,0,0), rgba(0,0,0,0.15));
+            overflow: hidden; /* Chặn cuộn */
         }
 
+        /* Nội dung bên trong */
         .flower-img {
-            width: 90%;
-            height: 80%;
+            width: 85%;
+            height: 70%;
             object-fit: cover;
-            border: 5px solid white;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            border: 4px solid white;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
             transform: rotate(-3deg);
             background-image: url('https://banner2.cleanpng.com/20240104/pvp/transparent-cartoon-flowers-bouquet-colorful-roses-colorful-bouquet-of-roses-sunflowers-and-1710939838857.webp'); 
             background-size: cover;
             background-position: center;
-            filter: sepia(30%);
+            filter: sepia(20%);
         }
 
         .tape {
             position: absolute;
-            top: 20px;
+            top: 15px;
             left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 30px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transform: rotate(2deg);
+            transform: translateX(-50%) rotate(2deg);
+            width: 80px;
+            height: 25px;
+            background-color: rgba(255, 255, 255, 0.5);
             z-index: 2;
         }
 
@@ -249,79 +219,120 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: space-evenly; /* Chia đều khoảng cách */
+            justify-content: space-around; /* Phân bố đều theo chiều dọc */
+            padding: 10px 0;
         }
 
         .content h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 2.8em;
+            font-size: clamp(1.5rem, 4vw, 3rem); /* Tự động scale chữ */
             color: #c0392b;
-            margin-bottom: 0;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+            line-height: 1.2;
+            margin-bottom: 5px;
         }
 
         .content p {
-            font-size: 1.25em; /* Chữ vừa phải */
+            font-size: clamp(0.9rem, 2.5vw, 1.3rem); /* Chữ tự nhỏ lại nếu màn hình bé */
             line-height: 1.4;
             text-align: justify;
-            margin: 0 10px;
+            margin: 5px 0;
         }
 
         .signature {
             text-align: right;
             font-family: 'Dancing Script', cursive;
-            font-size: 1.6em;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
             color: #2c3e50;
-            margin-right: 10px;
+            margin-top: 5px;
         }
 
-        /* Responsive */
+        /* --- MOBILE OPTIMIZATION (Cực kỳ quan trọng) --- */
         @media (max-width: 850px) {
-            :root {
-                --book-width: 95vw;
-                --book-height: 80vh;
+            .opened-book-wrapper {
+                display: none; /* Giữ logic ẩn hiện */
             }
-            .book { flex-direction: column; }
-            .page { width: 100%; height: 50%; }
-            .page.left { border-radius: 10px 10px 0 0; border-right: none; border-bottom: 1px solid #ccc; }
-            .page.right { border-radius: 0 0 10px 10px; }
-            .page.left::after, .page.right::after { display: none; }
-            .flower-img { height: 90%; width: auto; }
-            .content h1 { font-size: 2.2em; }
-            .content p { font-size: 1.1em; line-height: 1.3; }
+
+            .book {
+                width: 92vw;
+                height: 85vh; /* Chiếm 85% chiều cao màn hình */
+                flex-direction: column; /* Xếp dọc: Ảnh trên, Lời chúc dưới */
+                box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            }
+
+            .page {
+                width: 100%;
+                height: 50%; /* Chia đôi màn hình */
+                padding: 20px;
+            }
+
+            /* Trang trên (Ảnh) */
+            .page.left {
+                border-radius: 10px 10px 0 0;
+                background: linear-gradient(to bottom, #e6d8be, #fdfbf0 15%);
+                border-right: none;
+                border-bottom: 1px solid rgba(139, 69, 19, 0.1);
+            }
+
+            /* Trang dưới (Chữ) */
+            .page.right {
+                border-radius: 0 0 10px 10px;
+                background: linear-gradient(to top, #e6d8be, #fdfbf0 15%);
+                border-left: none;
+            }
+
+            .flower-img {
+                width: auto;
+                height: 85%; /* Ảnh cao hơn chút trên mobile */
+                max-width: 90%;
+            }
+
+            .content {
+                justify-content: center;
+                gap: 10px;
+            }
+
+            /* Tinh chỉnh chữ trên mobile */
+            .content h1 {
+                font-size: 6.5vmin; /* Dựa trên cạnh nhỏ nhất của màn hình */
+            }
+            
+            .content p {
+                font-size: 4vmin;
+                line-height: 1.5;
+            }
+
+            .signature {
+                font-size: 5vmin;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Canvas Pháo Hoa -->
     <canvas id="fireworks-canvas"></canvas>
-
-    <!-- Container chứa hiệu ứng rơi (Hoa/Tim) -->
     <div id="falling-container"></div>
 
-    <!-- Nhạc nền (Nhạc không lời tri ân nhẹ nhàng) -->
     <audio id="bg-music" loop>
+        <!-- Dùng link nhạc ổn định hơn -->
         <source src="https://cdn.pixabay.com/audio/2024/06/05/audio_116f29598b.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- SÁCH ĐÓNG -->
+    <!-- Sách Đóng -->
     <div class="closed-book-wrapper" id="closed-book-trigger">
         <div class="closed-book">
             <div class="book-title">Tri Ân<br>20-11</div>
         </div>
-        <div class="click-hint">Chạm để mở sách ✨</div>
+        <div class="click-hint">Cham nhẹ để mở 👆</div>
     </div>
 
-    <!-- SÁCH MỞ -->
+    <!-- Sách Mở -->
     <div class="opened-book-wrapper" id="opened-book-view">
         <div class="book">
-            <!-- Trang Trái -->
             <div class="page left">
                 <div class="tape"></div>
                 <div class="flower-img"></div>
             </div>
-            <!-- Trang Phải -->
             <div class="page right">
                 <div class="content">
                     <h1>Kính Gửi Thầy Cô</h1>
@@ -332,7 +343,7 @@
                         Kính chúc Thầy,Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý. Những bài học ngày ấy mãi là hành trang quý giá theo em suốt cuộc đời.
                     </p>
                     <div class="signature">
-                        Học trò của Thầy,Cô,<br>
+                        Học trò,<br>
                         K23418
                     </div>
                 </div>
@@ -348,32 +359,31 @@
         const canvas = document.getElementById('fireworks-canvas');
         const ctx = canvas.getContext('2d');
 
-        // --- PHẦN 1: LOGIC PHÁO HOA ---
+        // Detect Mobile
+        const isMobile = window.innerWidth < 850;
+
+        // --- PHẦN 1: CANVAS PHÁO HOA (Tối ưu hiệu năng) ---
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
 
         class Particle {
             constructor(x, y, color) {
                 this.x = x;
                 this.y = y;
                 this.color = color;
-                // Tốc độ nổ ra xung quanh
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = Math.random() * 4 + 1;
+                // Giảm tốc độ nổ trên mobile cho gọn
+                const velocity = isMobile ? Math.random() * 3 + 1 : Math.random() * 4 + 1;
                 this.vx = Math.cos(angle) * velocity;
                 this.vy = Math.sin(angle) * velocity;
-                this.alpha = 1; // Độ trong suốt
-                this.decay = Math.random() * 0.015 + 0.015; // Tốc độ mờ
+                this.alpha = 1;
+                this.decay = isMobile ? 0.02 : 0.015; // Mờ nhanh hơn trên mobile
             }
 
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                this.vy += 0.05; // Trọng lực nhẹ
+                this.vy += 0.05;
                 this.alpha -= this.decay;
             }
 
@@ -381,7 +391,7 @@
                 ctx.save();
                 ctx.globalAlpha = this.alpha;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, isMobile ? 1.5 : 2, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.restore();
@@ -389,45 +399,32 @@
         }
 
         let particles = [];
-        const colors = ['#FF5733', '#FFC300', '#DAF7A6', '#FF33F6', '#33FFF6', '#FFFFFF'];
+        const colors = ['#FF5733', '#FFC300', '#DAF7A6', '#FF33F6', '#33FFF6'];
 
         function createFirework(x, y) {
-            const particleCount = 80; // Số lượng hạt mỗi pháo
+            // Giảm số lượng hạt trên mobile để đỡ lag
+            const count = isMobile ? 30 : 80; 
             const color = colors[Math.floor(Math.random() * colors.length)];
-            for (let i = 0; i < particleCount; i++) {
+            for (let i = 0; i < count; i++) {
                 particles.push(new Particle(x, y, color));
             }
         }
 
         function animateFireworks() {
-            // Tạo hiệu ứng vệt mờ (trails)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; // Xóa vết mờ nhanh hơn
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Cập nhật và vẽ các hạt
+            
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.update();
                 p.draw(ctx);
-                if (p.alpha <= 0) {
-                    particles.splice(i, 1);
-                }
+                if (p.alpha <= 0) particles.splice(i, 1);
             }
             requestAnimationFrame(animateFireworks);
         }
 
-        // Tự động bắn pháo hoa ngẫu nhiên
-        function autoFireworks() {
-            if (openedBook.style.display === 'block') {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * (canvas.height / 2); // Chỉ nổ ở nửa trên màn hình
-                createFirework(x, y);
-            }
-        }
-
-        // --- PHẦN 2: LOGIC HOA RƠI & SÁCH ---
-        const fallingItems = ['', '', '', '', '']; // Thêm icon mũ cử nhân
-
+        // --- PHẦN 2: HOA RƠI ---
+        const fallingItems = ['', '', '', '', '']; 
         function createFallingItem() {
             const item = document.createElement('div');
             item.classList.add('falling-item');
@@ -441,33 +438,46 @@
             setTimeout(() => { item.remove(); }, duration * 1000);
         }
 
-        // --- PHẦN 3: XỬ LÝ SỰ KIỆN CLICK ---
+        // --- LOGIC CHÍNH ---
         closedBook.addEventListener('click', () => {
-            // 1. Nhạc
             music.volume = 0.6;
-            music.play().catch(e => console.log("Cần tương tác để phát nhạc"));
+            music.play().catch(() => {});
 
-            // 2. Hiệu ứng chuyển cảnh
-            closedBook.style.transform = "scale(1.5)";
+            // Hiệu ứng biến mất
+            closedBook.style.transform = isMobile ? "scale(1.2)" : "scale(1.5)";
             closedBook.style.opacity = "0";
 
             setTimeout(() => {
                 closedBook.style.display = 'none';
                 
                 // Hiện sách mở
-                openedBook.style.display = 'block';
+                openedBook.style.display = 'flex'; // Dùng flex để căn giữa
+                
+                // Animation mở sách
                 requestAnimationFrame(() => {
                     openedBook.style.opacity = '1';
-                    document.querySelector('.book').style.transform = "scale(1)";
                 });
 
-                // 3. Kích hoạt các hiệu ứng
-                setInterval(createFallingItem, 400); // Hoa rơi
+                // Bắt đầu hiệu ứng
+                setInterval(createFallingItem, isMobile ? 600 : 400); // Mobile rơi ít hơn
+                animateFireworks();
                 
-                animateFireworks(); // Bắt đầu vòng lặp vẽ canvas
-                setInterval(autoFireworks, 800); // Bắn pháo hoa mỗi 0.8 giây
+                // Pháo hoa tự động
+                setInterval(() => {
+                    if (openedBook.style.opacity === '1') {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * (canvas.height / 2);
+                        createFirework(x, y);
+                    }
+                }, isMobile ? 1200 : 800); // Mobile bắn chậm hơn
 
             }, 600);
+        });
+
+        // Fix resize trên mobile
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         });
 
     </script>
