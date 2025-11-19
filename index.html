@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tri Ân Thầy Cô 20/11</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #fdfbf0;
+            --book-width: 800px;
+            --book-height: 500px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #1a1a1a; /* Nền tối hơn để pháo hoa đẹp hơn */
+            background-image: radial-gradient(circle, #2c3e50 0%, #000000 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        /* --- CANVAS PHÁO HOA --- */
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Nằm dưới sách nhưng trên nền */
+            pointer-events: none;
+        }
+
+        /* --- HIỆU ỨNG RƠI (HOA/LÁ) --- */
+        #falling-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .falling-item {
+            position: absolute;
+            top: -50px;
+            user-select: none;
+            animation-name: fall;
+            animation-timing-function: linear;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
+
+        /* --- SÁCH ĐÓNG --- */
+        .closed-book-wrapper {
+            position: absolute;
+            z-index: 50;
+            transition: transform 0.8s ease, opacity 0.8s ease;
+            cursor: pointer;
+        }
+
+        .closed-book-wrapper:hover {
+            transform: scale(1.05) rotate(-2deg);
+        }
+
+        .closed-book {
+            width: 280px;
+            height: 420px;
+            background: #F33139;
+            border-radius: 20px 16px 12px 32px;
+            background-image: linear-gradient(to right, #D11F2F 48px, #ba0716 50px, transparent 50px);
+            box-shadow: 10px 20px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .closed-book::after {
+            content: "";
+            position: absolute;
+            height: 52px;
+            width: 274px; 
+            bottom: 6px;
+            right: 0px;
+            background: white;
+            border-radius: 32px 4px 4px 32px;
+            box-shadow: inset 4px 6px 0px 0px #E4E0CE;  
+            background-image: linear-gradient(to bottom, transparent 6px, #E4E0CE 8px, transparent 8px, transparent 12px, #E4E0CE 12px, transparent 14px, transparent 18px,#E4E0CE 18px, transparent 20px, transparent 24px, #E4E0CE 24px, transparent 26px, transparent 30px, #E4E0CE 30px, transparent 32px, transparent 36px, #E4E0CE 36px, transparent 38px, transparent 42px, #E4E0CE 42px, transparent 44px, transparent 48px, #E4E0CE 48px, transparent 50px);     
+            z-index: -1;
+        }
+
+        .closed-book::before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 160px; 
+            right: 40px;
+            top: 72px; 
+            background: #D11F2F;
+            border-radius: 20px;
+            box-shadow: 0px 36px #D11F2F;
+        }
+
+        .book-title {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            width: 180px;
+            text-align: center;
+            color: #fdfbf0;
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transform: rotate(-5deg);
+            line-height: 1.2;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: -40px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            opacity: 0.8;
+            animation: fadeHint 1.5s infinite;
+        }
+
+        @keyframes fadeHint {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* --- SÁCH MỞ --- */
+        .opened-book-wrapper {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            z-index: 10;
+        }
+
+        .book {
+            width: var(--book-width);
+            height: var(--book-height);
+            display: flex;
+            perspective: 1500px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .page {
+            width: 50%;
+            height: 100%;
+            background-color: var(--paper-color);
+            position: relative;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0) 100%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            padding: 30px; /* Giảm padding một chút */
+            box-shadow: inset 0 0 30px rgba(139, 69, 19, 0.1);
+        }
+
+        .page.left {
+            border-radius: 10px 0 0 10px;
+            background: linear-gradient(to right, #e6d8be, #fdfbf0 15%, #fdfbf0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .page.left::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.15));
+        }
+
+        /* Căn chỉnh trang phải: Không cuộn */
+        .page.right {
+            border-radius: 0 10px 10px 0;
+            background: linear-gradient(to left, #e6d8be, #fdfbf0 15%, #fdfbf0 100%);
+            color: #5d4037;
+            border-left: 1px solid rgba(0,0,0,0.05);
+            
+            /* Flexbox để căn giữa và không cuộn */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+            text-align: center;
+        }
+        
+        .page.right::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to left, rgba(0,0,0,0), rgba(0,0,0,0.15));
+        }
+
+        .flower-img {
+            width: 90%;
+            height: 80%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            transform: rotate(-3deg);
+            background-image: url('https://banner2.cleanpng.com/20240104/pvp/transparent-cartoon-flowers-bouquet-colorful-roses-colorful-bouquet-of-roses-sunflowers-and-1710939838857.webp'); 
+            background-size: cover;
+            background-position: center;
+            filter: sepia(30%);
+        }
+
+        .tape {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transform: rotate(2deg);
+            z-index: 2;
+        }
+
+        .content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly; /* Chia đều khoảng cách */
+        }
+
+        .content h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.8em;
+            color: #c0392b;
+            margin-bottom: 0;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+        }
+
+        .content p {
+            font-size: 1.25em; /* Chữ vừa phải */
+            line-height: 1.4;
+            text-align: justify;
+            margin: 0 10px;
+        }
+
+        .signature {
+            text-align: right;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6em;
+            color: #2c3e50;
+            margin-right: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            :root {
+                --book-width: 95vw;
+                --book-height: 80vh;
+            }
+            .book { flex-direction: column; }
+            .page { width: 100%; height: 50%; }
+            .page.left { border-radius: 10px 10px 0 0; border-right: none; border-bottom: 1px solid #ccc; }
+            .page.right { border-radius: 0 0 10px 10px; }
+            .page.left::after, .page.right::after { display: none; }
+            .flower-img { height: 90%; width: auto; }
+            .content h1 { font-size: 2.2em; }
+            .content p { font-size: 1.1em; line-height: 1.3; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Canvas Pháo Hoa -->
+    <canvas id="fireworks-canvas"></canvas>
+
+    <!-- Container chứa hiệu ứng rơi (Hoa/Tim) -->
+    <div id="falling-container"></div>
+
+    <!-- Nhạc nền (Nhạc không lời tri ân nhẹ nhàng) -->
+    <audio id="bg-music" loop>
+        <source src="https://cdn.pixabay.com/audio/2024/06/05/audio_116f29598b.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- SÁCH ĐÓNG -->
+    <div class="closed-book-wrapper" id="closed-book-trigger">
+        <div class="closed-book">
+            <div class="book-title">Tri Ân<br>20-11</div>
+        </div>
+        <div class="click-hint">Chạm để mở sách ✨</div>
+    </div>
+
+    <!-- SÁCH MỞ -->
+    <div class="opened-book-wrapper" id="opened-book-view">
+        <div class="book">
+            <!-- Trang Trái -->
+            <div class="page left">
+                <div class="tape"></div>
+                <div class="flower-img"></div>
+            </div>
+            <!-- Trang Phải -->
+            <div class="page right">
+                <div class="content">
+                    <h1>Kính Gửi Thầy Cô</h1>
+                    <p>
+                        Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi đến Thầy,Cô lời tri ân sâu sắc nhất. Cảm ơn Thầy,Cô vì đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người.
+                    </p>
+                    <p>
+                        Kính chúc Thầy,Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý. Những bài học ngày ấy mãi là hành trang quý giá theo em suốt cuộc đời.
+                    </p>
+                    <div class="signature">
+                        Học trò của Thầy,Cô,<br>
+                        K23418
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const closedBook = document.getElementById('closed-book-trigger');
+        const openedBook = document.getElementById('opened-book-view');
+        const music = document.getElementById('bg-music');
+        const fallingContainer = document.getElementById('falling-container');
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- PHẦN 1: LOGIC PHÁO HOA ---
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                // Tốc độ nổ ra xung quanh
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 4 + 1;
+                this.vx = Math.cos(angle) * velocity;
+                this.vy = Math.sin(angle) * velocity;
+                this.alpha = 1; // Độ trong suốt
+                this.decay = Math.random() * 0.015 + 0.015; // Tốc độ mờ
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; // Trọng lực nhẹ
+                this.alpha -= this.decay;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        let particles = [];
+        const colors = ['#FF5733', '#FFC300', '#DAF7A6', '#FF33F6', '#33FFF6', '#FFFFFF'];
+
+        function createFirework(x, y) {
+            const particleCount = 80; // Số lượng hạt mỗi pháo
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateFireworks() {
+            // Tạo hiệu ứng vệt mờ (trails)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Cập nhật và vẽ các hạt
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw(ctx);
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateFireworks);
+        }
+
+        // Tự động bắn pháo hoa ngẫu nhiên
+        function autoFireworks() {
+            if (openedBook.style.display === 'block') {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height / 2); // Chỉ nổ ở nửa trên màn hình
+                createFirework(x, y);
+            }
+        }
+
+        // --- PHẦN 2: LOGIC HOA RƠI & SÁCH ---
+        const fallingItems = ['', '', '', '', '']; // Thêm icon mũ cử nhân
+
+        function createFallingItem() {
+            const item = document.createElement('div');
+            item.classList.add('falling-item');
+            item.innerText = fallingItems[Math.floor(Math.random() * fallingItems.length)];
+            item.style.left = Math.random() * 100 + 'vw';
+            const size = Math.random() * 15 + 10;
+            item.style.fontSize = size + 'px';
+            const duration = Math.random() * 3 + 4;
+            item.style.animationDuration = duration + 's';
+            fallingContainer.appendChild(item);
+            setTimeout(() => { item.remove(); }, duration * 1000);
+        }
+
+        // --- PHẦN 3: XỬ LÝ SỰ KIỆN CLICK ---
+        closedBook.addEventListener('click', () => {
+            // 1. Nhạc
+            music.volume = 0.6;
+            music.play().catch(e => console.log("Cần tương tác để phát nhạc"));
+
+            // 2. Hiệu ứng chuyển cảnh
+            closedBook.style.transform = "scale(1.5)";
+            closedBook.style.opacity = "0";
+
+            setTimeout(() => {
+                closedBook.style.display = 'none';
+                
+                // Hiện sách mở
+                openedBook.style.display = 'block';
+                requestAnimationFrame(() => {
+                    openedBook.style.opacity = '1';
+                    document.querySelector('.book').style.transform = "scale(1)";
+                });
+
+                // 3. Kích hoạt các hiệu ứng
+                setInterval(createFallingItem, 400); // Hoa rơi
+                
+                animateFireworks(); // Bắt đầu vòng lặp vẽ canvas
+                setInterval(autoFireworks, 800); // Bắn pháo hoa mỗi 0.8 giây
+
+            }, 600);
+        });
+
+    </script>
+</body>
+</html>
